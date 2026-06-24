@@ -2,8 +2,15 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
 
-// โหลดไฟล์กุญแจที่ต้องอยู่ในโฟลเดอร์ src/config/
-const creds = require('../config/google-credentials.json'); 
+// โหลดไฟล์กุญแจแบบ Dynamic (แยกระหว่างตอนเขียนโค้ด กับ ตอนรันบน Cloud)
+let creds;
+if (process.env.RENDER) {
+    // ถ้าบอทรันอยู่บน Render ให้ไปงัดตู้เซฟของระบบ
+    creds = require('/etc/secrets/google-credentials.json');
+} else {
+    // ถ้ารันในเครื่องเรา (Local) ให้ดึงจากโฟลเดอร์ config เหมือนเดิม
+    creds = require('../config/google-credentials.json');
+}
 
 // Spreadsheet ID ของคุณ
 const SPREADSHEET_ID = '11uBiA2dDH7kv9g-cipupmvK97Nn2S5vHYC75h37MQAI';
