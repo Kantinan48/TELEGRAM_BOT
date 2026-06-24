@@ -51,7 +51,8 @@ bot.command('total', async (ctx) => {
 
         loadingMessage = await ctx.reply('📊 กำลังรวบรวมข้อมูลและคำนวณยอด รอดักครู่นะครับ...');
 
-        const summaryData = await getAdvancedSummary(period, includeList);
+        // ส่ง ID และชื่อของผู้ใช้ไปด้วย
+        const summaryData = await getAdvancedSummary(period, includeList, ctx.from.id, ctx.from.first_name);
 
         if (!summaryData || summaryData.total === 0) {
             await ctx.telegram.deleteMessage(ctx.chat.id, loadingMessage.message_id);
@@ -112,8 +113,8 @@ bot.on('photo', async (ctx) => {
         const cleanJsonString = aiResultString.replace(/```json/g, '').replace(/```/g, '').trim();
         const aiData = JSON.parse(cleanJsonString);
 
-        // ☁️ 6. ส่งข้อมูล JSON ไปบันทึกลง Google Sheets ทันที
-        await saveToGoogleSheets(aiData);
+        // ☁️ 6. ส่งข้อมูล JSON พร้อม ID ผู้ใช้ไปบันทึกลง Google Sheets
+        await saveToGoogleSheets(aiData, ctx.from.id, ctx.from.first_name);
 
         // 7. สร้างชื่อไฟล์แบบ Dynamic ตามวันเวลาปัจจุบัน (ไว้โชว์ในแชท)
         const now = new Date();
@@ -200,8 +201,8 @@ bot.action(/^cat_(\d)_(.+)$/, async (ctx) => {
     const newCategory = categoryMap[catId];
 
     try {
-        // วิ่งไปอัปเดตใน Google Sheets
-        const isUpdated = await updateCategoryByRef(refNo, newCategory);
+        // วิ่งไปอัปเดตใน Google Sheets (ค้นหาเฉพาะใน Tab ของตัวเอง)
+        const isUpdated = await updateCategoryByRef(refNo, newCategory, ctx.from.id, ctx.from.first_name);
 
         if (isUpdated) {
             const oldText = ctx.callbackQuery.message.text;
