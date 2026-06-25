@@ -1,11 +1,13 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
 
-// โหลดไฟล์กุญแจแบบ Dynamic (รองรับทั้ง Local และ Render Cloud)
+// โหลดไฟล์กุญแจแบบ Dynamic (แยกระหว่างตอนเขียนโค้ด กับ ตอนรันบน Cloud)
 let creds;
 if (process.env.RENDER) {
+    // ถ้าบอทรันอยู่บน Render ให้ไปงัดตู้เซฟของระบบ
     creds = require('/etc/secrets/google-credentials.json');
 } else {
+    // ถ้ารันในเครื่องเรา (Local) ให้ดึงจากโฟลเดอร์ config เหมือนเดิม
     creds = require('../config/google-credentials.json');
 }
 
