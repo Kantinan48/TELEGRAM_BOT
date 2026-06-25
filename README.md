@@ -30,3 +30,4 @@ TeleExpense คือแอปพลิเคชันบัญชีราย�
 git clone <YOUR_GITHUB_REPO_URL>
 cd TeleExpense
 npm install
+// ทดสอบการเชื่อมต่อ GitHub
