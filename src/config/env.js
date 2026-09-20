@@ -8,7 +8,7 @@ const config = {
 
 if (!config.telegramBotToken || !config.geminiApiKey) {
     console.error("❌ ERROR: ตัวแปรในไฟล์ .env ไม่ครบ! กรุณาตรวจสอบ TELEGRAM_BOT_TOKEN และ GEMINI_API_KEY");
-    process.exit(1); // สั่งหยุดการทำงานทันที
+    process.exit(1); 
 }
 
 module.exports = config;

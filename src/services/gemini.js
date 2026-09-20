@@ -1,4 +1,3 @@
-// src/services/gemini.js
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const axios = require('axios');
 const config = require('../config/env');
@@ -11,7 +10,7 @@ async function analyzeSlip(imageUrl) {
         const base64Image = Buffer.from(response.data).toString("base64");
         const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
-        // Prompt Engineering ขั้นสูง: กำหนด Data Schema ชัดเจน
+        // Prompt Engineering 
         const prompt = `
             คุณคือ AI ผู้เชี่ยวชาญด้านบัญชี นี่คือภาพสลิปโอนเงิน (e-Slip) ที่ผู้ใช้ส่งมาให้คุณวิเคราะห์ กรุณาดึงข้อมูลสำคัญออกมาในรูปแบบ JSON Object ตาม Schema ด้านล่างนี้เท่านั้น:
             {

@@ -1,11 +1,10 @@
-// src/bot/telegram.js
 const { Telegraf } = require('telegraf');
 const config = require('../config/env');
 const { analyzeSlip } = require('../services/gemini');
 const { saveToGoogleSheets, updateCategoryByRef, getAdvancedSummary } = require('../services/googleSheet');
 const bot = new Telegraf(config.telegramBotToken);
 
-// Middleware: ตัวดักจับและแสดง Log สำหรับเช็กว่าใครส่งอะไรมาบ้าง
+// Middleware: ตัวดักจับและแสดง Log 
 bot.use((ctx, next) => {
     const user = ctx.from?.first_name || 'Unknown';
     const msgType = ctx.message?.text ? `ข้อความ: ${ctx.message.text}` : 'รูปภาพ/สลิป หรืออื่นๆ';
@@ -13,7 +12,7 @@ bot.use((ctx, next) => {
     return next();
 });
 
-// คำสั่ง /start เมื่อผู้ใช้ทักบอทครั้งแรก
+// คำสั่ง /start 
 bot.start((ctx) => {
     ctx.reply(`สวัสดีครับคุณ ${ctx.from.first_name}! 👋\nยินดีต้อนรับสู่ TeleExpense Bot 💸\nพิมพ์ /help เพื่อดูคำสั่งทั้งหมด`);
 });
@@ -35,15 +34,15 @@ bot.help((ctx) => {
     
     ctx.reply(helpMessage, { parse_mode: 'Markdown' });
 });
-// คำสั่ง /summary เพื่อดูสรุปยอดค่าใช้จ่าย
-// คำสั่งตระกูล /total ทั้งหมด
+// คำสั่ง /summary 
+// คำสั่งตระกูล /total 
 bot.command('total', async (ctx) => {
     let loadingMessage;
     try {
         // วิเคราะห์คำสั่งที่ผู้ใช้พิมพ์มา เช่น "/total day list"
         const text = ctx.message.text.toLowerCase();
-        let period = 'month'; // ค่าเริ่มต้นคือเดือนนี้
-        let includeList = text.includes('list'); // มีคำว่า list ไหม?
+        let period = 'month'; 
+        let includeList = text.includes('list');
 
         if (text.includes('day')) period = 'day';
         else if (text.includes('week')) period = 'week';
@@ -51,7 +50,7 @@ bot.command('total', async (ctx) => {
 
         loadingMessage = await ctx.reply('📊 กำลังรวบรวมข้อมูลและคำนวณยอด รอดักครู่นะครับ...');
 
-        // ส่ง ID และชื่อของผู้ใช้ไปด้วย
+        // ส่ง ID และชื่อของผู้ใช้
         const summaryData = await getAdvancedSummary(period, includeList, ctx.from.id, ctx.from.first_name);
 
         if (!summaryData || summaryData.total === 0) {
@@ -96,10 +95,10 @@ bot.command('total', async (ctx) => {
 bot.on('photo', async (ctx) => {
     let loadingMessage;
     try {
-        // 1. ส่งข้อความให้ผู้ใช้รู้ว่าระบบกำลังทำงาน
+        // 1. ส่งข้อความให้ผู้ใช้
         loadingMessage = await ctx.reply('🔍 กำลังใช้ AI วิเคราะห์สลิป รอสักครู่...');
 
-        // 2. ดึงข้อมูลรูปภาพ (เลือกขนาดใหญ่สุดที่ index สุดท้าย)
+        // 2. ดึงข้อมูลรูปภาพ 
         const photoArray = ctx.message.photo;
         const highestResPhoto = photoArray[photoArray.length - 1];
 
@@ -139,7 +138,6 @@ bot.on('photo', async (ctx) => {
             await ctx.reply(replyMessage);
         }
 
-    // ... โค้ดเดิมด้านบน ...
     } catch (error) {
         console.error("❌ Telegram Bot Error:", error.message);
         
@@ -156,14 +154,11 @@ bot.on('photo', async (ctx) => {
     }
 });
 
-// Event: ดักจับข้อความธรรมดา (Text) ที่ไม่ใช่รูปภาพ
+// Event: ดักจับข้อความธรรมดา 
 bot.on('text', (ctx) => {
-    ctx.reply('ตอนนี้ผมยังอ่านข้อความไม่ได้ครับ รบกวนส่งเป็น "รูปสลิปโอนเงิน" นะครับ 🧾');
+    ctx.reply('รูปสลิปโอนเงินหรือใบเสร็จเท่านั้นนะจ๊ะ 💋');
 });
 
-// --- ระบบปุ่มกด (Inline Keyboard Handlers) ---
-
-// Data Mapping: แปลงรหัสสั้นเป็นชื่อหมวดหมู่เต็ม เพื่อเลี่ยงข้อจำกัด 64 bytes ของ Telegram
 const categoryMap = {
     '1': 'อาหาร',
     '2': 'เดินทาง/คมนาคม',
@@ -171,7 +166,7 @@ const categoryMap = {
     '4': 'โอนเงิน/อื่นๆ'
 };
 
-// 1. เมื่อผู้ใช้กดปุ่ม "แก้ไขหมวดหมู่" (ใช้ Regex จับคำว่า edit_ ตามด้วยเลขอ้างอิง)
+// 1. เมื่อผู้ใช้กดปุ่ม "แก้ไขหมวดหมู่"
 bot.action(/^edit_(.+)$/, async (ctx) => {
     const refNo = ctx.match[1]; 
     
@@ -190,7 +185,6 @@ bot.action(/^edit_(.+)$/, async (ctx) => {
         }
     };
 
-    // เปลี่ยนปุ่มเดิม ให้กลายเป็นชุดปุ่มเลือกหมวดหมู่
     await ctx.editMessageReplyMarkup(categoryButtons.reply_markup);
     await ctx.answerCbQuery(); // ส่งสัญญาณบอก Telegram ว่าบอทรับทราบแล้ว ปุ่มจะได้ไม่โหลดค้าง
 });
@@ -201,7 +195,6 @@ bot.action(/^cat_(\d)_(.+)$/, async (ctx) => {
     const newCategory = categoryMap[catId];
 
     try {
-        // วิ่งไปอัปเดตใน Google Sheets (ค้นหาเฉพาะใน Tab ของตัวเอง)
         const isUpdated = await updateCategoryByRef(refNo, newCategory, ctx.from.id, ctx.from.first_name);
 
         if (isUpdated) {
